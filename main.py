@@ -17,6 +17,18 @@ class Player(object):
         self.rect.x += dx
         self.rect.y += dy
 
+        #collision detection
+        for wall in walls:
+            if self.rect.colliderect(wall.rect):
+                if dx > 0:
+                    self.rect.right = wall.rect.left
+                if dx < 0:
+                    self.rect.left = wall.rect.right
+                if dy > 0:
+                    self.rect.bottom = wall.rect.top
+                if dy < 0:
+                    self.rect.top = wall.rect.bottom
+
 class PlayerSprite(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -41,6 +53,9 @@ class Wall(object):
         walls.append(self)
         self.rect = pygame.Rect(wx, wy, 30, 30)
 
+    def reset_wall(self):
+        self.active = False
+
 #start pygame
 os.environ["SDL_VIDEO_CENTERED"] = "1"
 pygame.init()
@@ -58,6 +73,7 @@ walls = []
 player = Player()
 player_sprite = PlayerSprite()
 colour = (0, 128, 255)
+wall_colour = (255, 255, 255)
 
 level = [
     "WWWWWWWWWWWWWWWWWWWW",
@@ -65,10 +81,56 @@ level = [
     "W               EE W",
     "W               EE W",
     "W                  W",
-    
-
-
+    "W            WWWWW W",
+    "W                  W",
+    "W                  W",
+    "W  WWWWW           W",
+    "W                  W",
+    "W                WWW",
+    "W                  W",
+    "W                  W",
+    "W      WWWWWW      W",
+    "W                  W",
+    "W                  W",
+    "W                  W",
+    "WWWWWWWWWWWWWWWWWWWW",
 ]
+
+levels = [[
+    "WWWWWWWWWWWWWWWWWWWW",
+    "W                  W",
+    "W                  W",
+    "W                  W",
+    "W                E W",
+    "W            WWWWW W",
+    "W                  W",
+    "W                  W",
+    "W  WWWWW           W",
+    "W                  W",
+    "W               WWWW",
+    "W                  W",
+    "W                  W",
+    "W      WWWWWW      W",
+    "W                  W",
+    "W                  W",
+    "W                  W",
+    "WWWWWWWWWWWWWWWWWWWW",
+], [
+    "WWWWWWWWWWWWWWWWWWWW",
+]]
+
+
+#read each letter in the level to create the wall objects
+x = y = 0
+for row in level:
+    for col in row:
+        if col == "W":
+            Wall(x, y)
+        if col == "E:":
+            end_rect = pygame.Rect(x, y, 30, 30)
+        x += 30
+    y += 30
+    x = 0
 
 #main loop
 running = True
@@ -107,17 +169,37 @@ while running:
         if player.rect.x > width:
             player.rect.x = -59
 
+    if player.rect.colliderect(end_rect):
+        del walls[:]
+        level = random.choice(levels)
+        wall_colour = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        x = y = 0
+        for row in level:
+            for col in row:
+                if col == "W":
+                    Wall(x, y)
+                if col == "E":
+                    end_rect = pygame.Rect(x, y, 30, 30)
+                x += 30
+            y += 30
+            x = 0
+
     #draw screen
     screen.fill((0, 0, 0))
+    for wall in walls:
+        pygame.draw.rect(screen, wall_colour, wall.rect)
+    pygame.draw.rect(screen, (255, 0, 0), end_rect)
     pygame.draw.rect(screen, colour, player.rect)
 
-    all_sprites_list = pygame.sprite.Group()
+    #pygame.draw.rect(screen, colour, player.rect)
 
-    player_sprite.rect.x = 100
-    player_sprite.rect.y = 100
-    all_sprites_list.add(player_sprite)
+    #all_sprites_list = pygame.sprite.Group()
 
-    all_sprites_list.draw(screen)
+    #player_sprite.rect.x = 100
+    #player_sprite.rect.y = 100
+    #all_sprites_list.add(player_sprite)
+
+    #all_sprites_list.draw(screen)
 
     pygame.display.flip()
 
