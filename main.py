@@ -35,6 +35,7 @@ class PlayerSprite(pygame.sprite.Sprite):
 
         self.image = pygame.image.load("fortnite_char.png").convert_alpha()
         self.image.set_colorkey([255, 255, 255])
+        self.image = pygame.transform.scale(self.image, (60, 60))
 
         self.rect = self.image.get_rect()
 
@@ -48,6 +49,18 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.rect.x += dx
         self.rect.y += dy
 
+        #collision detection
+        for wall in walls:
+            if self.rect.colliderect(wall.rect):
+                if dx > 0:
+                    self.rect.right = wall.rect.left
+                if dx < 0:
+                    self.rect.left = wall.rect.right
+                if dy > 0:
+                    self.rect.bottom = wall.rect.top
+                if dy < 0:
+                    self.rect.top = wall.rect.bottom
+
 class Wall(object):
     def __init__(self, wx, wy):
         walls.append(self)
@@ -56,14 +69,24 @@ class Wall(object):
     def reset_wall(self):
         self.active = False
 
+#scoreboard
+def text_objects(text, font):
+    textSurface = font.render(text, True, (255, 255, 255))
+    return textSurface, textSurface.get_rect()
+
+def message_display(text, top, left, size):
+    #set font and size
+    my_text = pygame.font.Font('freesansbold.ttf', size)
+    
+
 #start pygame
 os.environ["SDL_VIDEO_CENTERED"] = "1"
 pygame.init()
 
 #set up display
 pygame.display.set_caption("Fortnite 2")
-width = 620
-height = 540
+width = 1400
+height = 1000
 screen = pygame.display.set_mode((width, height))
 
 clock = pygame.time.Clock()
@@ -126,7 +149,7 @@ for row in level:
     for col in row:
         if col == "W":
             Wall(x, y)
-        if col == "E:":
+        if col == "E":
             end_rect = pygame.Rect(x, y, 30, 30)
         x += 30
     y += 30
@@ -189,7 +212,8 @@ while running:
     for wall in walls:
         pygame.draw.rect(screen, wall_colour, wall.rect)
     pygame.draw.rect(screen, (255, 0, 0), end_rect)
-    pygame.draw.rect(screen, colour, player.rect)
+    #pygame.draw.rect(screen, colour, player.rect)
+    screen.blit(player_sprite.image, player.rect)
 
     #pygame.draw.rect(screen, colour, player.rect)
 
